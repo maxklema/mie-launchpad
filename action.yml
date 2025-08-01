@@ -251,8 +251,10 @@ runs:
             -o SendEnv="CONTAINER_NAME PROXMOX_USERNAME PROXMOX_PASSWORD PROJECT_REPOSITORY PROJECT_BRANCH PROJECT_ROOT INSTALL_COMMAND START_COMMAND BUILD_COMMAND RUNTIME_LANGUAGE MULTI_COMPONENT ROOT_START_COMMAND DEPLOY_ON_START SERVICES CUSTOM_SERVICES REQUIRE_SERVICES LINUX_DISTRIBUTION GH_ACTION HTTP_PORT" \
             update-container@$SSH_TARGET
           UPDATE_EXIT=$?
+          echo "$UPDATE_EXIT"
           if [ $UPDATE_EXIT -ne 0 ]; then
             echo "FAILED=1" >> $GITHUB_ENV
+            echo "Container update failed with exit code $UPDATE_EXIT"
             return $UPDATE_EXIT
           fi
         fi
@@ -369,7 +371,7 @@ runs:
       run: |
         if [ -z "$GITHUB_TOKEN" ]; then
           echo "Cannot comment on PR: missing token"
-          exit 0
+          exit 1
         fi
 
         # Check if this branch has an open PR
@@ -405,3 +407,4 @@ runs:
           -d "{\"body\":$(echo "$COMMENT_BODY" | jq -R -s .)}"
 
         echo "Failure comment posted to PR #$PR_NUMBER"
+        exit 1
