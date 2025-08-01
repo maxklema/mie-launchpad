@@ -185,20 +185,21 @@ runs:
           if [ $CONTAINER_EXISTS -eq 1 ]; then
             echo "FAILED=1" >> $GITHUB_ENV # User does not own the container
           elif [ $CONTAINER_EXISTS -eq 0 ]; then
-              echo "Cloning repository based on $PROJECT_BRANCH branch."
+            echo "Cloning repository based on $PROJECT_BRANCH branch."
 
-              sshpass -p 'mie123!' ssh \
-               -T \
-               -o StrictHostKeyChecking=no \
-               -o UserKnownHostsFile=/dev/null \
-               -o SendEnv="CONTAINER_NAME CONTAINER_PASSWORD PROXMOX_USERNAME PUBLIC_KEY PROXMOX_PASSWORD HTTP_PORT DEPLOY_ON_START PROJECT_REPOSITORY PROJECT_BRANCH PROJECT_ROOT REQUIRE_ENV_VARS CONTAINER_ENV_VARS INSTALL_COMMAND START_COMMAND RUNTIME_LANGUAGE REQUIRE_SERVICES SERVICES CUSTOM_SERVICES LINUX_DISTRIBUTION MULTI_COMPONENT ROOT_START_COMMAND GH_ACTION GITHUB_PAT" \
-               create-container@$SSH_TARGET 
-              
-              echo "CONTAINER_CREATED=true" >> $GITHUB_OUTPUT
-              CONTAINER_CREATED=$?
-              if [ $CONTAINER_CREATED -ne 0 ]; then
-                 echo "FAILED=1" >> $GITHUB_ENV
-              fi
+            sshpass -p 'mie123!' ssh \
+              -T \
+              -o StrictHostKeyChecking=no \
+              -o UserKnownHostsFile=/dev/null \
+              -o SendEnv="CONTAINER_NAME CONTAINER_PASSWORD PROXMOX_USERNAME PUBLIC_KEY PROXMOX_PASSWORD HTTP_PORT DEPLOY_ON_START PROJECT_REPOSITORY PROJECT_BRANCH PROJECT_ROOT REQUIRE_ENV_VARS CONTAINER_ENV_VARS INSTALL_COMMAND START_COMMAND RUNTIME_LANGUAGE REQUIRE_SERVICES SERVICES CUSTOM_SERVICES LINUX_DISTRIBUTION MULTI_COMPONENT ROOT_START_COMMAND GH_ACTION GITHUB_PAT" \
+              create-container@$SSH_TARGET 
+            
+            echo "CONTAINER_CREATED=true" >> $GITHUB_OUTPUT
+            CONTAINER_CREATED=$?
+            if [ $CONTAINER_CREATED -ne 0 ]; then
+                echo "FAILED=1" >> $GITHUB_ENV
+            fi
+          fi
         fi
 
     - name: Container Update on Branch Push
