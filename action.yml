@@ -431,7 +431,7 @@ runs:
         GITHUB_SHA: ${{ github.sha }}
         GITHUB_REF: ${{ github.ref }}
       run: |
-        curl -s -X POST \
+        DEPLOYMENT_RESPONSE=$(curl -s -X POST \
           -H "Authorization: token $GITHUB_TOKEN" \
           -H "Content-Type: application/json" \
           -H "Accept: application/vnd.github.v3+json" \
@@ -439,11 +439,26 @@ runs:
           -d '{
             "ref": "'${GITHUB_REF#refs/heads/}'",
             "required_contexts": [],
-            "environment": "production",
+            "environment": "preview",
             "description": "Deployment triggered from Proxmox LaunchPad action.",
             "sha": "'$GITHUB_SHA'"
-          }'
-        echo "Deployment created for default branch: ${GITHUB_REF#refs/heads/}"
+          }')
+        DEPLOYMENT_ID=$(echo "$DEPLOYMENT_RESPONSE" | jq -r '.id')
+        if [ "$DEPLOYMENT_ID" != "null" ] && [ -n "$DEPLOYMENT_ID" ]; then
+          curl -s -X POST \
+            -H "Authorization: token $GITHUB_TOKEN" \
+            -H "Content-Type: application/json" \
+            -H "Accept: application/vnd.github.v3+json" \
+            "https://api.github.com/repos/$GITHUB_REPOSITORY/deployments/$DEPLOYMENT_ID/statuses" \
+            -d '{
+              "state": "success",
+              "description": "Deployment completed successfully.",
+              "environment": "preview"
+            }' > /dev/null
+          echo "Deployment created and marked as successful for default branch: ${GITHUB_REF#refs/heads/}"
+        else
+          echo "Deployment creation failed."
+        fi
 
     - name: Catch All Failure Step
       if: env.FAILED == '1'
