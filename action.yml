@@ -79,6 +79,7 @@ runs:
         REPO_NAME=$(basename "$GITHUB_REPOSITORY_FULL")
         CONTAINER_NAME="${GITHUB_REPOSITORY_OWNER}-${REPO_NAME}-${GITHUB_REF_NAME}"
         CONTAINER_NAME=${CONTAINER_NAME,,}
+        CONTAINER_NAME=$(echo "$CONTAINER_NAME" | sed 's/[^a-z0-9-]/-/g')
         export CONTAINER_NAME
 
         # Auto-detect if this is a runner setup job based on job name or if no container inputs are provided
@@ -158,6 +159,7 @@ runs:
         REPO_NAME=$(basename "$GITHUB_REPOSITORY_FULL")
         CONTAINER_NAME="${GITHUB_REPOSITORY_OWNER}-${REPO_NAME}-${GITHUB_REF_NAME}"
         CONTAINER_NAME=${CONTAINER_NAME,,}
+        CONTAINER_NAME=$(echo "$CONTAINER_NAME" | sed 's/[^a-z0-9-]/-/g')
         export CONTAINER_NAME
         STOP_SCRIPT=${{ steps.create-runner.outputs.STOP_SCRIPT }}
         if [ "$STOP_SCRIPT" != "true" ]; then
@@ -226,6 +228,7 @@ runs:
         REPO_NAME=$(basename "$GITHUB_REPOSITORY_FULL")
         CONTAINER_NAME="${GITHUB_REPOSITORY_OWNER}-${REPO_NAME}-${GITHUB_REF_NAME}"
         CONTAINER_NAME=${CONTAINER_NAME,,}
+        CONTAINER_NAME=$(echo "$CONTAINER_NAME" | sed 's/[^a-z0-9-]/-/g')
         export CONTAINER_NAME
         echo "$LINUX_DISTRIBUTION"
         STOP_SCRIPT=${{ steps.create-runner.outputs.STOP_SCRIPT }}
@@ -263,6 +266,7 @@ runs:
         REPO_NAME=$(basename "$GITHUB_REPOSITORY_FULL")
         CONTAINER_NAME="${GITHUB_REPOSITORY_OWNER}-${REPO_NAME}-${GITHUB_REF_NAME}"
         CONTAINER_NAME=${CONTAINER_NAME,,}
+        CONTAINER_NAME=$(echo "$CONTAINER_NAME" | sed 's/[^a-z0-9-]/-/g')
         export CONTAINER_NAME
         STOP_SCRIPT=${{ steps.create-runner.outputs.STOP_SCRIPT }}
         if [ "$STOP_SCRIPT" != true ]; then
