@@ -423,7 +423,7 @@ runs:
         exit 1
 
     - name: Create GitHub Deployment (Default Branch)
-      if: github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
+      if: github.ref == format('refs/heads/{0}', github.event.repository.default_branch) && env.FAILED != '1'
       shell: bash
       env:
         GITHUB_TOKEN: ${{ inputs.github_pat }}
