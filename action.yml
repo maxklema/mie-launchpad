@@ -358,7 +358,7 @@ runs:
             -H "Content-Type: application/json" \
             -H "Accept: application/vnd.github.v3+json" \
             "https://api.github.com/repos/$GITHUB_REPOSITORY/issues/$PR_NUMBER/comments" \
-            -d "$JSON_PAYLOAD"
+            -d "$JSON_PAYLOAD" > /dev/null
 
           echo "Initial comment posted to PR #$PR_NUMBER"
         else
@@ -417,7 +417,37 @@ runs:
           -H "Content-Type: application/json" \
           -H "Accept: application/vnd.github.v3+json" \
           "https://api.github.com/repos/$GITHUB_REPOSITORY/issues/$PR_NUMBER/comments" \
-          -d "$JSON_PAYLOAD"
+          -d "$JSON_PAYLOAD" > /dev/null
 
         echo "Failure comment posted to PR #$PR_NUMBER"
+        exit 1
+
+    - name: Create GitHub Deployment (Default Branch)
+      if: github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
+      shell: bash
+      env:
+        GITHUB_TOKEN: ${{ inputs.github_pat }}
+        GITHUB_REPOSITORY: ${{ github.repository }}
+        GITHUB_SHA: ${{ github.sha }}
+        GITHUB_REF: ${{ github.ref }}
+      run: |
+        curl -s -X POST \
+          -H "Authorization: token $GITHUB_TOKEN" \
+          -H "Content-Type: application/json" \
+          -H "Accept: application/vnd.github.v3+json" \
+          "https://api.github.com/repos/$GITHUB_REPOSITORY/deployments" \
+          -d '{
+            "ref": "'${GITHUB_REF#refs/heads/}'",
+            "required_contexts": [],
+            "environment": "production",
+            "description": "Deployment triggered from Proxmox LaunchPad action.",
+            "sha": "'$GITHUB_SHA'"
+          }'
+        echo "Deployment created for default branch: ${GITHUB_REF#refs/heads/}"
+
+    - name: Catch All Failure Step
+      if: env.FAILED == '1'
+      shell: bash
+      run: |
+        echo "Workflow failed. See previous steps for details."
         exit 1
