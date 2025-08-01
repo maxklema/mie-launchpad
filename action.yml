@@ -430,7 +430,13 @@ runs:
         GITHUB_REPOSITORY: ${{ github.repository }}
         GITHUB_SHA: ${{ github.sha }}
         GITHUB_REF: ${{ github.ref }}
+        GITHUB_REPOSITORY_OWNER: ${{ github.repository_owner }}
       run: |
+        REPO_NAME=$(basename "$GITHUB_REPOSITORY")
+        CONTAINER_NAME="${GITHUB_REPOSITORY_OWNER}-${REPO_NAME}-${GITHUB_REF#refs/heads/}"
+        CONTAINER_NAME=${CONTAINER_NAME,,}
+        CONTAINER_NAME=$(echo "$CONTAINER_NAME" | sed 's/[^a-z0-9-]/-/g')
+        CONTAINER_URL="https://${CONTAINER_NAME}.opensource.mieweb.org"
         DEPLOYMENT_RESPONSE=$(curl -s -X POST \
           -H "Authorization: token $GITHUB_TOKEN" \
           -H "Content-Type: application/json" \
@@ -453,9 +459,11 @@ runs:
             -d '{
               "state": "success",
               "description": "Deployment completed successfully.",
-              "environment": "preview"
+              "environment": "preview",
+              "environment_url": "'$CONTAINER_URL'"
             }' > /dev/null
           echo "Deployment created and marked as successful for default branch: ${GITHUB_REF#refs/heads/}"
+          echo "Deployment URL: $CONTAINER_URL"
         else
           echo "Deployment creation failed."
         fi
