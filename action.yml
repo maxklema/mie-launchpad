@@ -183,7 +183,8 @@ runs:
             container-exists@$SSH_TARGET
           CONTAINER_EXISTS=$?
           if [ $CONTAINER_EXISTS -eq 1 ]; then
-            exit 1 # User does not own the container
+            echo "FAILED=1" >> $GITHUB_ENV # User does not own the container
+            return 1
           elif [ $CONTAINER_EXISTS -eq 0 ]; then
               echo "Cloning repository based on $PROJECT_BRANCH branch."
 
@@ -195,7 +196,7 @@ runs:
                create-container@$SSH_TARGET 
               
               echo "CONTAINER_CREATED=true" >> $GITHUB_OUTPUT
-              exit $?
+              return $?
           fi
         fi
 
@@ -249,7 +250,11 @@ runs:
             -o UserKnownHostsFile=/dev/null \
             -o SendEnv="CONTAINER_NAME PROXMOX_USERNAME PROXMOX_PASSWORD PROJECT_REPOSITORY PROJECT_BRANCH PROJECT_ROOT INSTALL_COMMAND START_COMMAND BUILD_COMMAND RUNTIME_LANGUAGE MULTI_COMPONENT ROOT_START_COMMAND DEPLOY_ON_START SERVICES CUSTOM_SERVICES REQUIRE_SERVICES LINUX_DISTRIBUTION GH_ACTION HTTP_PORT" \
             update-container@$SSH_TARGET
-          exit $?
+          UPDATE_EXIT=$?
+          if [ $UPDATE_EXIT -ne 0 ]; then
+            echo "FAILED=1" >> $GITHUB_ENV
+            return $UPDATE_EXIT
+          fi
         fi
 
     - name: Container Deletion on Branch Deletion (Check)
@@ -286,7 +291,11 @@ runs:
             -o UserKnownHostsFile=/dev/null \
             -o SendEnv="PROXMOX_USERNAME PROXMOX_PASSWORD CONTAINER_NAME GITHUB_PAT PROJECT_REPOSITORY" \
             delete-container@$SSH_TARGET
-          exit $?
+          DELETE_EXIT=$?
+          if [ $DELETE_EXIT -ne 0 ]; then
+            echo "FAILED=1" >> $GITHUB_ENV
+            return $DELETE_EXIT
+          fi
         fi
 
     - name: Check if branch is part of a PR and comment
@@ -349,7 +358,7 @@ runs:
         fi
 
     - name: Comment on PR on Failure
-      if: always() && (job.status == 'failure' || job.status == 'cancelled')
+      if: env.FAILED == '1'
       shell: bash
       env:
         GITHUB_TOKEN: ${{ inputs.github_pat }}
