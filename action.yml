@@ -184,7 +184,6 @@ runs:
           CONTAINER_EXISTS=$?
           if [ $CONTAINER_EXISTS -eq 1 ]; then
             echo "FAILED=1" >> $GITHUB_ENV # User does not own the container
-            return 1
           elif [ $CONTAINER_EXISTS -eq 0 ]; then
               echo "Cloning repository based on $PROJECT_BRANCH branch."
 
@@ -196,8 +195,10 @@ runs:
                create-container@$SSH_TARGET 
               
               echo "CONTAINER_CREATED=true" >> $GITHUB_OUTPUT
-              return $?
-          fi
+              CONTAINER_CREATED=$?
+              if [ $CONTAINER_CREATED -ne 0 ]; then
+                 echo "FAILED=1" >> $GITHUB_ENV
+              fi
         fi
 
     - name: Container Update on Branch Push
@@ -228,6 +229,7 @@ runs:
         HTTP_PORT: ${{ inputs.http_port }}
         GH_ACTION: y
       run: |
+        echo "Running Container Update..."
         REPO_NAME=$(basename "$GITHUB_REPOSITORY_FULL")
         CONTAINER_NAME="${GITHUB_REPOSITORY_OWNER}-${REPO_NAME}-${GITHUB_REF_NAME}"
         CONTAINER_NAME=${CONTAINER_NAME,,}
