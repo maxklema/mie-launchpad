@@ -445,7 +445,7 @@ runs:
           -d '{
             "ref": "'${GITHUB_REF#refs/heads/}'",
             "required_contexts": [],
-            "environment": "preview",
+            "environment": "Preview - '$GITHUB_REPOSITORY'",
             "description": "Deployment triggered from Proxmox LaunchPad action.",
             "sha": "'$GITHUB_SHA'"
           }')
@@ -459,7 +459,7 @@ runs:
             -d '{
               "state": "success",
               "description": "Deployment completed successfully.",
-              "environment": "preview",
+              "environment": "Preview - '$GITHUB_REPOSITORY'",
               "environment_url": "'$CONTAINER_URL'"
             }' > /dev/null
           echo "Deployment created and marked as successful for default branch: ${GITHUB_REF#refs/heads/}"
