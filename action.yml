@@ -255,9 +255,12 @@ runs:
             -o UserKnownHostsFile=/dev/null \
             -o SendEnv="CONTAINER_NAME PROXMOX_USERNAME PROXMOX_PASSWORD PROJECT_REPOSITORY PROJECT_BRANCH PROJECT_ROOT INSTALL_COMMAND START_COMMAND BUILD_COMMAND RUNTIME_LANGUAGE MULTI_COMPONENT ROOT_START_COMMAND DEPLOY_ON_START SERVICES CUSTOM_SERVICES REQUIRE_SERVICES LINUX_DISTRIBUTION GH_ACTION HTTP_PORT" \
             update-container@$SSH_TARGET
-          echo "$UPDATE_EXIT"
+          UPDATE_EXIT=$?
+
           if [ $UPDATE_EXIT -ne 0 ]; then
             echo "FAILED=1" >> $GITHUB_ENV
+            echo "Container update failed with exit code $UPDATE_EXIT"
+            env
           fi
         fi
 
@@ -305,7 +308,7 @@ runs:
     - name: Check if branch is part of a PR and comment
       shell: bash
       id: check-pr
-      if: steps.should-run.outputs.should_run == 'true' && steps.create-runner.outputs.CREATE_RUNNER_JOB != 'true'
+      if: steps.should-run.outputs.should_run == 'true' && steps.create-runner.outputs.CREATE_RUNNER_JOB != 'true' && env.FAILED != '1'
       env:
         GITHUB_TOKEN: ${{ inputs.github_pat }}
         GITHUB_REPOSITORY: ${{ github.repository }}
